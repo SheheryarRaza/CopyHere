@@ -16,23 +16,21 @@ namespace CopyHere.Api.Controllers
             _authService = authService;
         }
 
-        /// <summary>
-        /// Registers a new user.
-        /// </summary>
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] DTO_RegisterRequest request)
         {
-            var response = await _authService.RegisterAsync(request);
-            if (response == null)
+            if (!ModelState.IsValid)
             {
-                return BadRequest(new { message = "User registration failed." });
+                return BadRequest(ModelState);
             }
-            return Ok(response);
+            var (success, message) = await _authService.RegisterAsync(request);
+            if (!success)
+            {
+                return BadRequest(new { message });
+            }
+            return Ok(new { message });
         }
 
-        /// <summary>
-        /// Logs in an existing user and returns a JWT token.
-        /// </summary>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] DTO_LoginRequest request)
         {

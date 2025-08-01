@@ -34,7 +34,7 @@ namespace CopyHere.Application.Services
 
         }
 
-        public async Task<DTO_LoginResponse?> RegisterAsync (DTO_RegisterRequest request)
+        public async Task<(bool Success, string? Message)> RegisterAsync (DTO_RegisterRequest request)
         {
             var user = new User
             {
@@ -44,19 +44,12 @@ namespace CopyHere.Application.Services
             };
 
             var result = await _userManager.CreateAsync(user, request.Password);
-
-            if (result.Succeeded)
+            if (!result.Succeeded)
             {
-                var token = _jwtService.GenerateToken(user);
-                return new DTO_LoginResponse
-                {
-                    Token = token,
-                    UserId = user.Id.ToString(),
-                    Email = user.Email
-                };
+                return (false, "User registration failed.");
             }
             // In a real app, you'd handle specific errors from result.Errors
-            return null;
+            return (true, "User registered successfully.");
         }
 
         public async Task<DTO_LoginResponse> LoginAsync (DTO_LoginRequest request)
