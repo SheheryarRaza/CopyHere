@@ -19,10 +19,13 @@ namespace CopyHere.Infrastructure.Repository
             _context = context;
             Devices = new DeviceRepository(_context);
             ClipboardEntries = new ClipboardEntryRepository(_context);
+            RefreshTokens = new RefreshTokenRepository(_context);
         }
 
         public IDeviceRepository Devices { get; private set; }
         public IClipboardEntryRepository ClipboardEntries { get; private set; }
+
+        public IRefreshTokenRepository RefreshTokens { get; private set; }
 
         public async Task<int> CompleteAsync()
         {

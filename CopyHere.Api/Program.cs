@@ -1,11 +1,13 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using CopyHere.Api.Hubs;
 using CopyHere.Application; // For AddApplication extension method
+using CopyHere.Application.Common.Settings; // To access ApplicationSettings
 using CopyHere.Infrastructure; // For AddInfrastructure extension method
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models; // For Swagger/OpenAPI
-using CopyHere.Application.Common.Settings; // To access ApplicationSettings
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -102,6 +104,18 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("fixed-window-policy", fixedWindowOptions =>
+    {
+        fixedWindowOptions.PermitLimit = 5; // Allow 5 requests
+        fixedWindowOptions.Window = TimeSpan.FromSeconds(10); // per 10 seconds
+        fixedWindowOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        fixedWindowOptions.QueueLimit = 2; // Queue up to 2 requests
+    });
+});
+builder.Services.AddProblemDetails();
+
 // Add SignalR
 builder.Services.AddSignalR();
 
@@ -133,6 +147,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors("AllowSpecificOrigin"); // Use the CORS policy
+
+app.UseRateLimiter();
 
 app.UseAuthentication(); // Must be before UseAuthorization
 app.UseAuthorization();

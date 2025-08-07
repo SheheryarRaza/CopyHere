@@ -41,6 +41,16 @@ namespace CopyHere.Infrastructure.Authentication
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+        public string GenerateRefreshToken()
+        {
+            // Generate a secure, cryptographically random token
+            var randomNumber = new byte[32];
+            using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomNumber);
+                return Convert.ToBase64String(randomNumber);
+            }
+        }
 
         public ClaimsPrincipal? GetPrincipalFromToken(string token)
         {

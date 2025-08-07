@@ -10,6 +10,7 @@ namespace CopyHere.Core.Interfaces.IRepositories
     {
         IDeviceRepository Devices { get; }
         IClipboardEntryRepository ClipboardEntries { get; }
+        IRefreshTokenRepository RefreshTokens { get; }
 
         Task<int> CompleteAsync();
     }

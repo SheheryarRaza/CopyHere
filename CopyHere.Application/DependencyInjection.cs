@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using CopyHere.Application.Common.Settings;
 using CopyHere.Application.Interfaces.Services;
 using CopyHere.Application.Services;
@@ -21,6 +23,9 @@ namespace CopyHere.Application
 
             // Configure application settings
             services.Configure<ApplicationSettings>(configuration.GetSection("ApplicationSettings"));
+
+            services.AddFluentValidationAutoValidation();
+            services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
 
             return services;
         }
