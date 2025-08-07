@@ -35,9 +35,6 @@ namespace CopyHere.Api.Controllers
             return userId;
         }
 
-        /// <summary>
-        /// Uploads a new clipboard entry.
-        /// </summary>
         [HttpPost]
         public async Task<IActionResult> UploadClipboard([FromBody] DTO_UploadClipboardRequest request)
         {
@@ -46,9 +43,6 @@ namespace CopyHere.Api.Controllers
                 var userId = GetUserId();
                 var clipboardEntryDto = await _clipboardService.UploadClipboardEntryAsync(userId, request);
 
-                // Notify all other connected devices of this user via SignalR
-                // Exclude the originating device if you wish, but for clipboard sync,
-                // usually all devices get the latest copy.
                 await _hubContext.Clients.Group(userId.ToString()).SendAsync("ReceiveClipboardUpdate", clipboardEntryDto);
 
                 return Ok(clipboardEntryDto);
@@ -68,9 +62,6 @@ namespace CopyHere.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Gets the latest clipboard entry for the current user.
-        /// </summary>
         [HttpGet("latest")]
         public async Task<IActionResult> GetLatestClipboard()
         {
@@ -95,9 +86,7 @@ namespace CopyHere.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Gets clipboard history for the current user.
-        /// </summary>
+
         [HttpGet("history")]
         public async Task<IActionResult> GetClipboardHistory([FromQuery] int skip = 0, [FromQuery] int take = 10)
         {
@@ -118,9 +107,6 @@ namespace CopyHere.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Deletes a specific clipboard entry for the current user.
-        /// </summary>
         [HttpDelete("{entryId}")]
         public async Task<IActionResult> DeleteClipboardEntry(Guid entryId)
         {
@@ -145,9 +131,6 @@ namespace CopyHere.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Clears all clipboard entries for the current user.
-        /// </summary>
         [HttpDelete("clear")]
         public async Task<IActionResult> ClearAllClipboardEntries()
         {
@@ -168,9 +151,6 @@ namespace CopyHere.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Registers a new device for the current user.
-        /// </summary>
         [HttpPost("devices/register")]
         public async Task<IActionResult> RegisterDevice([FromBody] DTO_RegisterDeviceRequest request)
         {
@@ -191,9 +171,6 @@ namespace CopyHere.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Gets all registered devices for the current user.
-        /// </summary>
         [HttpGet("devices")]
         public async Task<IActionResult> GetUserDevices()
         {
@@ -214,9 +191,6 @@ namespace CopyHere.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Deletes a specific device for the current user.
-        /// </summary>
         [HttpDelete("devices/{deviceId}")]
         public async Task<IActionResult> DeleteDevice(Guid deviceId)
         {

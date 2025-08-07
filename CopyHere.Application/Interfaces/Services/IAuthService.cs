@@ -9,7 +9,7 @@ namespace CopyHere.Application.Interfaces.Services
 {
     public interface IAuthService
     {
-        Task<DTO_LoginResponse?> RegisterAsync(DTO_RegisterRequest request);
+        Task<(bool Success, string? Message)> RegisterAsync(DTO_RegisterRequest request);
         Task<DTO_LoginResponse?> LoginAsync(DTO_LoginRequest request);
     }
 }

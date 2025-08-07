@@ -15,15 +15,15 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     // Fix for tools that require a top-level OpenAPI version field.
-    // This will force the generated JSON to include `openapi: 3.0.0`
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "CopyHere API", Version = "v1" });
+    c.SwaggerDoc("3.0.0", new OpenApiInfo { Title = "CopyHere API", Version = "3.0.0" });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
         Name = "Authorization",
         In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT"
     });
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
@@ -62,7 +62,7 @@ builder.Services.AddAuthentication(options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(applicationSettings.JwtSecret)),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(applicationSettings.JwtSecret)),
         ValidateIssuer = false, // Set to true in production and configure valid issuer
         ValidateAudience = false, // Set to true in production and configure valid audience
         RequireExpirationTime = true,
@@ -70,9 +70,19 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.Zero // No leeway for token expiry
     };
 
-    // Configure JWT for SignalR
+    // Add debugging events for JWT authentication
     options.Events = new JwtBearerEvents
     {
+        OnAuthenticationFailed = context =>
+        {
+            Console.WriteLine($"JWT Authentication failed: {context.Exception.Message}");
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context =>
+        {
+            Console.WriteLine($"JWT Token validated successfully for user: {context.Principal?.Identity?.Name}");
+            return Task.CompletedTask;
+        },
         OnMessageReceived = context =>
         {
             var accessToken = context.Request.Query["access_token"];
@@ -111,7 +121,13 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        // We are explicitly telling SwaggerUI to only use the 3.0.0 endpoint.
+        // This prevents it from trying to fetch the default v1 endpoint, which
+        // is the source of the 404 error.
+        c.SwaggerEndpoint("/swagger/3.0.0/swagger.json", "CopyHere API v3.0.0");
+    });
 }
 
 app.UseHttpsRedirection();

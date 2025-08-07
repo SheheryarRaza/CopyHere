@@ -21,7 +21,7 @@ namespace CopyHere.Infrastructure.Authentication
         public JwtService(IOptions<ApplicationSettings> appSettings)
         {
             _appSettings = appSettings.Value;
-            _key = Encoding.ASCII.GetBytes(_appSettings.JwtSecret);
+            _key = Encoding.UTF8.GetBytes(_appSettings.JwtSecret);
         }
         public string GenerateToken(User user)
         {
