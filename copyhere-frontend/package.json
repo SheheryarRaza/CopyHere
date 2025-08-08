@@ -1,0 +1,38 @@
+{
+  "name": "copyhere-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for CopyHere clipboard management application",
+  "main": "index.html",
+  "scripts": {
+    "start": "http-server -p 8080 -c-1",
+    "dev": "http-server -p 8080 -c-1 -o",
+    "build": "echo 'No build process needed for vanilla JS'",
+    "serve": "python -m http.server 8080",
+    "mock-server": "node mock-server.js"
+  },
+  "keywords": [
+    "clipboard",
+    "management",
+    "frontend",
+    "vanilla-js",
+    "html",
+    "css"
+  ],
+  "author": "CopyHere Team",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/copyhere-frontend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/copyhere-frontend/issues"
+  },
+  "homepage": "https://github.com/your-username/copyhere-frontend#readme"
+}
