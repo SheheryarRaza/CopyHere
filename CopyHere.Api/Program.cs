@@ -123,7 +123,7 @@ builder.Services.AddSignalR();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin",
-        builder => builder.WithOrigins("http://localhost:3000", "http://localhost:4200", "http://127.0.0.1:5500") // Replace with your client app origins
+        builder => builder.WithOrigins("http://localhost:3000", "http://localhost:8080", "http://127.0.0.1:5500", "http://127.0.0.1:5501", "null") // Replace with your client app origins
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials()); // Required for SignalR

@@ -22,10 +22,7 @@ namespace CopyHere.Infrastructure.Data
             base.OnModelCreating(modelBuilder); // Important for IdentityDbContext
 
             // Apply entity configurations
-            modelBuilder.ApplyConfiguration(new UserConfiguration());
-            modelBuilder.ApplyConfiguration(new DeviceConfiguration());
-            modelBuilder.ApplyConfiguration(new ClipboardEntryConfiguration());
-            modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
             // Configure relationships if not already handled by conventions or configurations
             modelBuilder.Entity<User>()

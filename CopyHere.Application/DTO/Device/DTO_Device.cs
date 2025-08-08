@@ -13,5 +13,6 @@ namespace CopyHere.Application.DTO.Device
         public string DeviceName { get; set; } = string.Empty;
         public string DeviceType { get; set; } = string.Empty;
         public DateTime LastSeen { get; set; }
+        public string LastSeenDescription { get; set; } = string.Empty;
     }
 }
