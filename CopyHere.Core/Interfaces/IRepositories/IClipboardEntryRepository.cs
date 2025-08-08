@@ -10,7 +10,7 @@ namespace CopyHere.Core.Interfaces.IRepositories
     public interface IClipboardEntryRepository
     {
         Task<ClipboardEntry?> GetByIdAsync(Guid id);
-        Task<IEnumerable<ClipboardEntry>> GetUserClipboardHistoryAsync(Guid userId, int skip, int take);
+        Task<IEnumerable<ClipboardEntry>> GetUserClipboardHistoryAsync(Guid userId, int skip, int take, bool includeArchived = false);
         Task<ClipboardEntry?> GetLatestUserClipboardEntryAsync(Guid userId);
         Task AddAsync(ClipboardEntry entry);
         Task UpdateAsync(ClipboardEntry entry);

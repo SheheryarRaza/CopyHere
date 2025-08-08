@@ -1,12 +1,15 @@
 ﻿using CopyHere.Application.DTO.Auth;
+using CopyHere.Application.DTO.RefreshToken;
 using CopyHere.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace CopyHere.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [EnableRateLimiting("fixed-window-policy")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
@@ -40,6 +43,27 @@ namespace CopyHere.Api.Controllers
                 return Unauthorized(new { message = "Invalid credentials." });
             }
             return Ok(response);
+        }
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] DTO_RefreshTokenRequest request)
+        {
+            var response = await _authService.RefreshTokenAsync(request);
+            if (response == null)
+            {
+                return BadRequest(new { message = "Invalid token or refresh token." });
+            }
+            return Ok(response);
+        }
+
+        [HttpPost("revoke")]
+        public async Task<IActionResult> Revoke([FromBody] DTO_RevokeRefreshToken request)
+        {
+            var success = await _authService.RevokeTokenAsync(request);
+            if (!success)
+            {
+                return BadRequest(new { message = "Invalid refresh token." });
+            }
+            return NoContent();
         }
     }
 }

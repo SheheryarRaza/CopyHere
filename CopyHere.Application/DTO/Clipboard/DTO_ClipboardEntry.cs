@@ -15,6 +15,9 @@ namespace CopyHere.Application.DTO.Clipboard
         public ContentType ContentType { get; set; }
         public string ContentText { get; set; } = string.Empty;
         public string? ContentBase64 { get; set; } // Base64 encoded string for binary content
+        public bool IsPinned { get; set; }
+        public bool IsArchived { get; set; }
+        public List<string> Tags { get; set; } = new List<string>();
         public DateTime CreatedAt { get; set; }
     }
 }

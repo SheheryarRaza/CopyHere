@@ -86,7 +86,6 @@ namespace CopyHere.Api.Controllers
             }
         }
 
-
         [HttpGet("history")]
         public async Task<IActionResult> GetClipboardHistory([FromQuery] int skip = 0, [FromQuery] int take = 10)
         {
@@ -151,6 +150,52 @@ namespace CopyHere.Api.Controllers
             }
         }
 
+        [HttpPost("restore/{entryId}")]
+        public async Task<IActionResult> RestoreClipboardEntry(Guid entryId)
+        {
+            var userId = GetUserId();
+            var restoredDto = await _clipboardService.RestoreClipboardEntryAsync(userId, entryId);
+            // Notify clients of the newly restored (and now latest) item
+            await _hubContext.Clients.Group(userId.ToString()).SendAsync("ReceiveClipboardUpdate", restoredDto);
+            return Ok(restoredDto);
+        }
+
+        [HttpPut("{entryId}/pin")]
+        public async Task<IActionResult> PinEntry(Guid entryId)
+        {
+            var dto = await _clipboardService.SetPinStatusAsync(GetUserId(), entryId, true);
+            return Ok(dto);
+        }
+        [HttpPut("{entryId}/unpin")]
+        public async Task<IActionResult> UnpinEntry(Guid entryId)
+        {
+            var dto = await _clipboardService.SetPinStatusAsync(GetUserId(), entryId, false);
+            return Ok(dto);
+        }
+
+        [HttpPut("{entryId}/archive")]
+        public async Task<IActionResult> ArchiveEntry(Guid entryId)
+        {
+            var dto = await _clipboardService.SetArchiveStatusAsync(GetUserId(), entryId, true);
+            return Ok(dto);
+        }
+
+        [HttpPut("{entryId}/unarchive")]
+        public async Task<IActionResult> UnarchiveEntry(Guid entryId)
+        {
+            var dto = await _clipboardService.SetArchiveStatusAsync(GetUserId(), entryId, false);
+            return Ok(dto);
+        }
+
+        [HttpPut("{entryId}/tags")]
+        public async Task<IActionResult> UpdateTags(Guid entryId, [FromBody] DTO_UpdateTags request)
+        {
+            var dto = await _clipboardService.UpdateTagsAsync(GetUserId(), entryId, request.Tags);
+            return Ok(dto);
+        }
+
+        //Device Management Endpoints
+
         [HttpPost("devices/register")]
         public async Task<IActionResult> RegisterDevice([FromBody] DTO_RegisterDeviceRequest request)
         {
@@ -214,5 +259,6 @@ namespace CopyHere.Api.Controllers
                 return StatusCode(500, new { message = "An error occurred while deleting device.", error = ex.Message });
             }
         }
+
     }
 }

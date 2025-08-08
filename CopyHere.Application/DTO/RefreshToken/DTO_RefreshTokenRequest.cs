@@ -4,13 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CopyHere.Application.DTO.Auth
+namespace CopyHere.Application.DTO.RefreshToken
 {
-    public class DTO_LoginResponse
+    public class DTO_RefreshTokenRequest
     {
         public string Token { get; set; } = string.Empty;
         public string RefreshToken { get; set; } = string.Empty;
-        public string UserId { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
     }
 }

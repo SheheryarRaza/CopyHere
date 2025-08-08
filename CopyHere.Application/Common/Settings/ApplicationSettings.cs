@@ -10,5 +10,6 @@ namespace CopyHere.Application.Common.Settings
     {
         public string JwtSecret { get; set; } = string.Empty;
         public int JwtTokenExpiryMinutes { get; set; }
+        public int RefreshTokenExpiryDays { get; set; }
     }
 }

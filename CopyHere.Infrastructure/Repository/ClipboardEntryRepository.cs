@@ -24,18 +24,22 @@ namespace CopyHere.Infrastructure.Repository
             return await _context.ClipboardEntries.FindAsync(id);
         }
 
-        public async Task<IEnumerable<ClipboardEntry>> GetUserClipboardHistoryAsync(Guid userId, int skip, int take)
+        public async Task<IEnumerable<ClipboardEntry>> GetUserClipboardHistoryAsync(Guid userId, int skip, int take, bool includeArchived = false)
         {
-            // IMPORTANT: Avoid using OrderBy() on large datasets without indexing,
-            // but for a clipboard history, ordering by CreatedAt DESC is typical.
-            // Ensure an index on UserId and CreatedAt for performance.
-            var clipHistory = _context.ClipboardEntries
-                .Where(ce => ce.UserId == userId)
-                .OrderByDescending(ce => ce.CreatedAt)
-                .Skip(skip)
-                .Take(take);
+            var query = _context.ClipboardEntries.Where(ce => ce.UserId == userId);
 
-            return await clipHistory.ToListAsync();
+            if (!includeArchived)
+            {
+                query = query.Where(ce => !ce.IsArchived);
+            }
+
+            // Pinned items first, then by date
+            return await query
+                .OrderByDescending(ce => ce.IsPinned)
+                .ThenByDescending(ce => ce.CreatedAt)
+                .Skip(skip)
+                .Take(take)
+                .ToListAsync();
         }
 
         public async Task<ClipboardEntry?> GetLatestUserClipboardEntryAsync(Guid userId)

@@ -14,5 +14,6 @@ namespace CopyHere.Core.Entity
         // Navigation properties
         public ICollection<Device> Devices { get; set; } = new List<Device>();
         public ICollection<ClipboardEntry> ClipboardEntries { get; set; } = new List<ClipboardEntry>();
+        public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
     }
 }

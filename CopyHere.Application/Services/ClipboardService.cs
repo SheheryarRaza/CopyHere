@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 using CopyHere.Application.DTO.Clipboard;
 using CopyHere.Application.DTO.Device;
 using CopyHere.Application.Interfaces.Services;
@@ -15,10 +16,12 @@ namespace CopyHere.Application.Services
     public class ClipboardService : IClipboardService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public ClipboardService(IUnitOfWork unitOfWork)
+        public ClipboardService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         public async Task<DTO_ClipboardEntry> UploadClipboardEntryAsync (Guid userId, DTO_UploadClipboardRequest request)
@@ -43,16 +46,7 @@ namespace CopyHere.Application.Services
             await _unitOfWork.ClipboardEntries.AddAsync(entry);
             await _unitOfWork.CompleteAsync();
 
-            return new DTO_ClipboardEntry
-            {
-                Id = entry.Id,
-                UserId = entry.UserId,
-                DeviceId = entry.DeviceId,
-                ContentType = entry.ContentType,
-                ContentText = entry.ContentText,
-                ContentBase64 = entry.ContentBytes != null ? Convert.ToBase64String(entry.ContentBytes) : null,
-                CreatedAt = entry.CreatedAt
-            };
+            return _mapper.Map<DTO_ClipboardEntry>(entry);
         }
         public async Task<DTO_ClipboardEntry?> GetLatestClipboardEntryAsync(Guid userId)
         {
@@ -62,30 +56,12 @@ namespace CopyHere.Application.Services
                 return null;
             }
 
-            return new DTO_ClipboardEntry
-            {
-                Id = entry.Id,
-                UserId = entry.UserId,
-                DeviceId = entry.DeviceId,
-                ContentType = entry.ContentType,
-                ContentText = entry.ContentText,
-                ContentBase64 = entry.ContentBytes != null ? Convert.ToBase64String(entry.ContentBytes) : null,
-                CreatedAt = entry.CreatedAt
-            };
+            return _mapper.Map<DTO_ClipboardEntry>(entry);
         }
-        public async Task<IEnumerable<DTO_ClipboardEntry>> GetClipboardHistoryAsync(Guid userId, int skip = 0, int take = 10)
+        public async Task<IEnumerable<DTO_ClipboardEntry>> GetClipboardHistoryAsync(Guid userId, int skip = 0, int take = 10, bool includeArchived = false)
         {
-            var history = await _unitOfWork.ClipboardEntries.GetUserClipboardHistoryAsync(userId, skip, take);
-            return history.Select(entry => new DTO_ClipboardEntry
-            {
-                Id = entry.Id,
-                UserId = entry.UserId,
-                DeviceId = entry.DeviceId,
-                ContentType = entry.ContentType,
-                ContentText = entry.ContentText,
-                ContentBase64 = entry.ContentBytes != null ? Convert.ToBase64String(entry.ContentBytes) : null,
-                CreatedAt = entry.CreatedAt
-            });
+            var history = await _unitOfWork.ClipboardEntries.GetUserClipboardHistoryAsync(userId, skip, take, includeArchived);
+            return _mapper.Map<IEnumerable<DTO_ClipboardEntry>>(history);
         }
         public async Task DeleteClipboardEntryAsync(Guid userId, Guid entryId)
         {
@@ -117,26 +93,12 @@ namespace CopyHere.Application.Services
             await _unitOfWork.Devices.AddAsync(device);
             await _unitOfWork.CompleteAsync(); // Commit changes
 
-            return new DTO_Device
-            {
-                Id = device.Id,
-                UserId = device.UserId,
-                DeviceName = device.DeviceName,
-                DeviceType = device.DeviceType,
-                LastSeen = device.LastSeen
-            };
+            return _mapper.Map<DTO_Device>(device);
         }
         public async Task<IEnumerable<DTO_Device>> GetUserDevicesAsync(Guid userId)
         {
             var devices = await _unitOfWork.Devices.GetUserDevicesAsync(userId);
-            return devices.Select(d => new DTO_Device
-            {
-                Id = d.Id,
-                UserId = d.UserId,
-                DeviceName = d.DeviceName,
-                DeviceType = d.DeviceType,
-                LastSeen = d.LastSeen
-            });
+            return _mapper.Map<IEnumerable<DTO_Device>>(devices);
         }
         public async Task DeleteDeviceAsync(Guid userId, Guid deviceId)
         {
@@ -150,5 +112,77 @@ namespace CopyHere.Application.Services
             await _unitOfWork.CompleteAsync(); // Commit changes
         }
 
+        public async Task<DTO_ClipboardEntry> RestoreClipboardEntryAsync(Guid userId, Guid entryId)
+        {
+            var originalEntry = await _unitOfWork.ClipboardEntries.GetByIdAsync(entryId);
+            if (originalEntry == null || originalEntry.UserId != userId)
+            {
+                throw new NotFoundException(nameof(ClipboardEntry), entryId);
+            }
+
+            var restoredEntry = new ClipboardEntry
+            {
+                Id = Guid.NewGuid(),
+                UserId = originalEntry.UserId,
+                DeviceId = originalEntry.DeviceId,
+                ContentType = originalEntry.ContentType,
+                ContentText = originalEntry.ContentText,
+                ContentBytes = originalEntry.ContentBytes,
+                IsPinned = false,
+                IsArchived = false,
+                Tags = originalEntry.Tags,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _unitOfWork.ClipboardEntries.AddAsync(restoredEntry);
+            await _unitOfWork.CompleteAsync();
+
+            return _mapper.Map<DTO_ClipboardEntry>(restoredEntry);
+        }
+
+        public async Task<DTO_ClipboardEntry> SetPinStatusAsync(Guid userId, Guid entryId, bool isPinned)
+        {
+            var entry = await _unitOfWork.ClipboardEntries.GetByIdAsync(entryId);
+            if (entry == null || entry.UserId != userId)
+            {
+                throw new NotFoundException(nameof(ClipboardEntry), entryId);
+            }
+
+            entry.IsPinned = isPinned;
+            await _unitOfWork.ClipboardEntries.UpdateAsync(entry);
+            await _unitOfWork.CompleteAsync();
+
+            return _mapper.Map<DTO_ClipboardEntry>(entry);
+        }
+
+        public async Task<DTO_ClipboardEntry> SetArchiveStatusAsync(Guid userId, Guid entryId, bool isArchived)
+        {
+            var entry = await _unitOfWork.ClipboardEntries.GetByIdAsync(entryId);
+            if (entry == null || entry.UserId != userId)
+            {
+                throw new NotFoundException(nameof(ClipboardEntry), entryId);
+            }
+
+            entry.IsArchived = isArchived;
+            await _unitOfWork.ClipboardEntries.UpdateAsync(entry);
+            await _unitOfWork.CompleteAsync();
+
+            return _mapper.Map<DTO_ClipboardEntry>(entry);
+        }
+
+        public async Task<DTO_ClipboardEntry> UpdateTagsAsync(Guid userId, Guid entryId, List<string> tags)
+        {
+            var entry = await _unitOfWork.ClipboardEntries.GetByIdAsync(entryId);
+            if (entry == null || entry.UserId != userId)
+            {
+                throw new NotFoundException(nameof(ClipboardEntry), entryId);
+            }
+
+            entry.Tags = string.Join(",", tags);
+            await _unitOfWork.ClipboardEntries.UpdateAsync(entry);
+            await _unitOfWork.CompleteAsync();
+
+            return _mapper.Map<DTO_ClipboardEntry>(entry);
+        }
     }
 }

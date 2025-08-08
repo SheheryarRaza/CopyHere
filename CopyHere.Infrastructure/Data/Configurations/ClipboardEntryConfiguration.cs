@@ -14,19 +14,15 @@ namespace CopyHere.Infrastructure.Data.Configurations
         public void Configure(EntityTypeBuilder<ClipboardEntry> builder)
         {
             builder.HasKey(ce => ce.Id);
+            builder.Property(ce => ce.ContentType).IsRequired().HasConversion<string>();
+            builder.Property(ce => ce.ContentText).HasMaxLength(4000);
+            builder.Property(ce => ce.ContentBytes).HasColumnType("varbinary(max)");
+            builder.Property(ce => ce.CreatedAt).IsRequired();
 
-            builder.Property(ce => ce.ContentType)
-                .IsRequired()
-                .HasConversion<string>(); // Store enum as string in DB
-
-            builder.Property(ce => ce.ContentText)
-                .HasMaxLength(4000); // Max length for text content, or NVARCHAR(MAX) if truly large
-
-            builder.Property(ce => ce.ContentBytes)
-                .HasColumnType("varbinary(max)"); // Store binary data
-
-            builder.Property(ce => ce.CreatedAt)
-                .IsRequired();
+            // New properties configuration
+            builder.Property(ce => ce.IsPinned).IsRequired().HasDefaultValue(false);
+            builder.Property(ce => ce.IsArchived).IsRequired().HasDefaultValue(false);
+            builder.Property(ce => ce.Tags).HasMaxLength(500);
         }
     }
 }

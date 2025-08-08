@@ -15,15 +15,14 @@ namespace CopyHere.Infrastructure.Data
 
         public DbSet<ClipboardEntry> ClipboardEntries { get; set; } = default!;
         public DbSet<Device> Devices { get; set; } = default!;
+        public DbSet<RefreshToken> RefreshTokens { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder); // Important for IdentityDbContext
 
             // Apply entity configurations
-            modelBuilder.ApplyConfiguration(new UserConfiguration());
-            modelBuilder.ApplyConfiguration(new DeviceConfiguration());
-            modelBuilder.ApplyConfiguration(new ClipboardEntryConfiguration());
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
             // Configure relationships if not already handled by conventions or configurations
             modelBuilder.Entity<User>()
@@ -43,6 +42,12 @@ namespace CopyHere.Infrastructure.Data
                 .WithOne(ce => ce.Device)
                 .HasForeignKey(ce => ce.DeviceId)
                 .OnDelete(DeleteBehavior.Restrict); // Prevent deleting device if it has clipboard entries
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.RefreshTokens)
+                .WithOne(rt => rt.User)
+                .HasForeignKey(rt => rt.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
